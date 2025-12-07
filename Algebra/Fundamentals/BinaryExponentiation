@@ -78,3 +78,71 @@ vector<int> permute(vector<int> sequence, vector<int> permutation, long long k) 
     }
     return sequence;
 }
+
+# Leading and trailing Zeros ; Problem Link : https://onlinejudge.org/index.php?option=onlinejudge&page=show_problem&problem=1970
+Apart from the novice programmers, all others know that you can’t exactly represent numbers raised to some high power. For example, the C function 
+pow(125456, 455) can be represented in double data type format, but you won’t get all the digits of the result. However we can get at least some satisfaction 
+if we could know few of the leading and trailing digits. This is the requirement of this problem.
+
+Input
+The first line of input will be an integer T < 1001, where T represents the number of test cases. Each of the next T lines contains two positive integers, n and k. 
+n will fit in 32 bit integer and k will be less than 10000001.
+
+Output
+For each line of input there will be one line of output. It will be of the format LLL . . . T T T, where LLL represents the first three digits of n k and T T T represents 
+the last three digits of n^k. You are assured that n k will contain at least 6 digits.
+
+Sample Input
+2
+123456 1
+123456 2
+Sample Output
+123...456
+152...936
+
+Code : 
+#include <bits/stdc++.h>
+using namespace std;
+
+long long modpow(long long a, long long b, long long mod) {
+    long long res = 1;
+    a %= mod;
+    while (b > 0) {
+        if (b & 1) res = (res * a) % mod;
+        a = (a * a) % mod;
+        b >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int T;
+    cin >> T;
+    while (T--) {
+        long long n, k;
+        cin >> n >> k;
+
+        // -------- LAST 3 DIGITS (using binary exponentiation mod 1000) --------
+        long long last3 = modpow(n, k, 1000);
+
+        // -------- FIRST 3 DIGITS (using logarithm technique) --------
+        /*
+            If x = n^k
+            log10(x) = k * log10(n) = y
+            fractional part = f = y - floor(y)
+            first 3 digits = pow(10, f) * 100
+        */
+        double y = k * log10(n);
+        double f = y - floor(y);  // fractional part
+
+        int first3 = pow(10, f + 2); // +2 to get first 3 digits (×100)
+
+        // --------- PRINT IN REQUIRED FORMAT ---------
+        cout << first3 << "...";
+        cout << setw(3) << setfill('0') << last3 << "\n";
+    }
+    return 0;
+}
