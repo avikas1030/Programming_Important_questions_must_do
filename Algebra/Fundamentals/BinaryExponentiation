@@ -211,3 +211,114 @@ int main() {
 
     return 0;
 }
+
+E. Decoding Genome : Recently a top secret mission to Mars has taken place. As a result, scientists managed to obtain some information about the Martian DNA. 
+Now we know that any Martian DNA contains at most m different nucleotides, numbered from 1 to m. 
+Special characteristics of the Martian DNA prevent some nucleotide pairs from following consecutively in this chain. 
+For example, if the nucleotide 1 and nucleotide 2 can not follow consecutively in the Martian DNA, 
+then the chain of nucleotides [1, 2] is not a valid chain of Martian DNA, but the chain of nucleotides [2, 1] can be a valid chain (if there is no corresponding restriction). The number of nucleotide pairs that can't follow in the DNA chain consecutively, is k.
+
+The needs of gene research required information about the quantity of correct n-long chains of the Martian DNA. Your task is to write a program that will calculate this value.
+Code : 
+#include <bits/stdc++.h>
+using namespace std;
+
+static const long long MOD = 1000000007;
+
+/* -------- Matrix Structure -------- */
+struct Matrix {
+    int size;
+    vector<vector<long long>> mat;
+
+    Matrix(int n) {
+        size = n;
+        mat.assign(n, vector<long long>(n, 0));
+    }
+};
+
+/* -------- Matrix Multiplication -------- */
+Matrix multiply(Matrix &A, Matrix &B) {
+    int n = A.size;
+    Matrix C(n);
+
+    for (int i = 0; i < n; i++) {
+        for (int k = 0; k < n; k++) {
+            if (A.mat[i][k] == 0) continue;
+            for (int j = 0; j < n; j++) {
+                C.mat[i][j] =
+                    (C.mat[i][j] + A.mat[i][k] * B.mat[k][j]) % MOD;
+            }
+        }
+    }
+    return C;
+}
+
+/* -------- Matrix Exponentiation -------- */
+Matrix matrixPower(Matrix base, long long power) {
+    int n = base.size;
+    Matrix result(n);
+
+    // Identity matrix
+    for (int i = 0; i < n; i++)
+        result.mat[i][i] = 1;
+
+    while (power > 0) {
+        if (power & 1)
+            result = multiply(result, base);
+
+        base = multiply(base, base);
+        power >>= 1;
+    }
+    return result;
+}
+
+/* -------- Convert character to index -------- */
+int getIndex(char c) {
+    if ('a' <= c && c <= 'z') return c - 'a';
+    return 26 + (c - 'A');
+}
+
+/* -------- Main -------- */
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    long long n;
+    int m, k;
+    cin >> n >> m >> k;
+
+    // If length is 1 → any character is valid
+    if (n == 1) {
+        cout << m << "\n";
+        return 0;
+    }
+
+    // Step 1: Build transition matrix
+    Matrix T(m);
+
+    // Initially all transitions allowed
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < m; j++)
+            T.mat[i][j] = 1;
+
+    // Remove forbidden transitions
+    for (int i = 0; i < k; i++) {
+        string s;
+        cin >> s;
+        int from = getIndex(s[0]);
+        int to   = getIndex(s[1]);
+        T.mat[from][to] = 0;
+    }
+
+    // Step 2: Raise matrix to power (n - 1)
+    Matrix R = matrixPower(T, n - 1);
+
+    // Step 3: Sum all possible paths
+    long long answer = 0;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < m; j++)
+            answer = (answer + R.mat[i][j]) % MOD;
+
+    cout << answer << "\n";
+    return 0;
+}
