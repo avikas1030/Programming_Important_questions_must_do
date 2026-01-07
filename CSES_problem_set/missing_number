@@ -1,0 +1,17 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+	long n;
+	cin>>n;
+	long long totalSum = n*(n+1)/2;
+	
+	for(int i=1; i<n; i++){
+	    long a;
+	    cin>>a;
+	    totalSum -= a;
+	}
+
+	cout<<totalSum<<"\n";
+
+}
