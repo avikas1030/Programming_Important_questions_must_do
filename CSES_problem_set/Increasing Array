@@ -1,0 +1,24 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    long long preMax = 0;
+    long long ans = 0;
+
+    for (int i = 0; i < n; i++) {
+        long long a;
+        cin >> a;
+
+        if (a < preMax) {
+            ans += (preMax - a);
+        } else {
+            preMax = a;
+        }
+    }
+
+    cout << ans << "\n";
+    return 0;
+}
