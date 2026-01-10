@@ -1,0 +1,35 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+	int t;
+	cin>>t;
+	
+	while(t-->0){
+	    long long row, col;
+	    cin>>row>>col;
+	    
+	    long long k = max(row, col);
+	    long long ans = 0;
+	    if(k&1){
+	        if(k==col){
+	            ans = k*k - (row-1);
+	        }
+	        else{
+	            ans = (k-1)*(k-1) + col;
+	        }
+	    }
+	    else{
+	        if(k==row){
+	        ans = k*k-(col-1);
+	        }
+	        else{
+	            ans = (k-1)*(k-1) + row;
+	        }
+	    }
+	    cout<<ans<<"\n";
+	}
+	
+	
+	return 0;
+}
