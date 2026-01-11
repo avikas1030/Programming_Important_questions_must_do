@@ -1,0 +1,35 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+	cin>>n;
+	long long totalSum = 1LL*n*(n+1)/2;
+	if(totalSum&1){
+	    cout<<"NO"<<"\n";
+	    return 0;
+	}
+	cout<<"YES"<<"\n";
+	set<int> st;
+	long long target = totalSum/2;
+	for(int i=n; i>=1; i--){
+	    if(i <= target){
+	        st.insert(i);
+	        target -= i;
+	    }
+	}
+	
+	cout<<st.size()<<"\n";
+	for (set<int>::reverse_iterator it = st.rbegin(); it != st.rend(); ++it) {
+    cout << *it << " ";
+}
+	
+	cout<<"\n"<<n-st.size()<<"\n";
+	for(int i=n; i>=1; i--){
+	    if(st.count(i)==0){
+	        cout<<i<<" ";
+	    }
+	}
+	return 0;
+
+}
