@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Extended Euclidean Algorithm
+// Returns g = gcd(a,b)
+// and finds x,y such that:
+//
+// a*x + b*y = g
+//
+
+// Extended Euclidean Algorithm
+long long extendedGCD(long long a, long long b,
+                      long long &x, long long &y) {
+
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+
+    long long x1, y1;
+
+    long long g = extendedGCD(b, a % b, x1, y1);
+
+    x = y1;
+    y = x1 - (a / b) * y1;
+
+    return g;
+}
+
+
+// Find and print all solutions for t in [tMin, tMax]
+void findAllSolutions(long long a, long long b, long long c,
+                      long long tMin, long long tMax) {
+
+    long long x0, y0;
+
+    // 1. Find gcd and Bezout coefficients
+    long long g = extendedGCD(a, b, x0, y0);
+
+    // 2. Check whether solution exists
+    if (c % g != 0) {
+        cout << "No integer solution exists.\n";
+        return;
+    }
+
+    // 3. Convert Bezout solution:
+    //
+    // a*x0 + b*y0 = g
+    //
+    // into:
+    //
+    // a*x0 + b*y0 = c
+    //
+
+    long long multiplier = c / g;
+
+    x0 *= multiplier;
+    y0 *= multiplier;
+
+    // 4. General solution:
+    //
+    // x = x0 + (b/g)t
+    // y = y0 - (a/g)t
+
+    long long dx = b / g;
+    long long dy = a / g;
+
+    // 5. Print all solutions
+    cout << "All solutions:\n\n";
+
+    for (long long t = tMin; t <= tMax; t++) {
+
+        long long x = x0 + dx * t;
+        long long y = y0 - dy * t;
+
+        cout << "t = " << t
+             << " -> x = " << x
+             << ", y = " << y << '\n';
+    }
+}
+
+
+int main() {
+
+    long long a = 6;
+    long long b = 9;
+    long long c = 15;
+
+    // We want t from -3 to 3
+    long long tMin = -3;
+    long long tMax = 3;
+
+    findAllSolutions(a, b, c, tMin, tMax);
+
+    return 0;
+}
