@@ -1,0 +1,320 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+// ------------------------------------------------------------
+// Extended Euclidean Algorithm
+// Finds x, y such that:
+//      a*x + b*y = gcd(a,b)
+// ------------------------------------------------------------
+ll extended_gcd(ll a, ll b, ll &x, ll &y) {
+
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+
+    ll x1, y1;
+
+    ll g = extended_gcd(b, a % b, x1, y1);
+
+    x = y1;
+    y = x1 - (a / b) * y1;
+
+    return g;
+}
+
+
+// ------------------------------------------------------------
+// Find one solution of:
+//      ax + by = c
+//
+// Returns false if no integer solution exists.
+// ------------------------------------------------------------
+bool find_any_solution(ll a, ll b, ll c,
+                       ll &x0, ll &y0, ll &g) {
+
+    ll x, y;
+
+    g = extended_gcd(abs(a), abs(b), x, y);
+
+    // No solution
+    if (c % g != 0)
+        return false;
+
+    // Restore signs
+    x *= c / g;
+    y *= c / g;
+
+    if (a < 0)
+        x = -x;
+
+    if (b < 0)
+        y = -y;
+
+    x0 = x;
+    y0 = y;
+
+    return true;
+}
+
+
+// ------------------------------------------------------------
+// Mathematical floor(a / b)
+// Works correctly even when a or b is negative.
+// b must not be 0.
+// ------------------------------------------------------------
+ll floor_div(ll a, ll b) {
+
+    assert(b != 0);
+
+    ll q = a / b;
+    ll r = a % b;
+
+    if (r != 0 && ((r > 0) != (b > 0)))
+        --q;
+
+    return q;
+}
+
+
+// ------------------------------------------------------------
+// Mathematical ceil(a / b)
+// Works correctly even when a or b is negative.
+// ------------------------------------------------------------
+ll ceil_div(ll a, ll b) {
+
+    assert(b != 0);
+
+    ll q = a / b;
+    ll r = a % b;
+
+    if (r != 0 && ((r > 0) == (b > 0)))
+        ++q;
+
+    return q;
+}
+
+
+// ------------------------------------------------------------
+// Add constraint:
+//
+//      L <= p*k + q <= R
+//
+// and update:
+//
+//      kMin <= k <= kMax
+// ------------------------------------------------------------
+bool add_constraint(ll p, ll q,
+                    ll L, ll R,
+                    ll &kMin, ll &kMax) {
+
+    // p*k + q = q
+    if (p == 0) {
+        return (L <= q && q <= R);
+    }
+
+    // L <= p*k + q <= R
+    //
+    // Subtract q:
+    //
+    // L-q <= p*k <= R-q
+
+    ll A = L - q;
+    ll B = R - q;
+
+    if (p > 0) {
+
+        // A/p <= k <= B/p
+        kMin = max(kMin, ceil_div(A, p));
+        kMax = min(kMax, floor_div(B, p));
+
+    }
+    else {
+
+        // Dividing by negative reverses inequalities:
+        //
+        // B/p <= k <= A/p
+
+        kMin = max(kMin, ceil_div(B, p));
+        kMax = min(kMax, floor_div(A, p));
+    }
+
+    return kMin <= kMax;
+}
+
+
+// ------------------------------------------------------------
+// Find solution with MINIMUM x+y
+//
+// Equation:
+//      ax + by = c
+//
+// Constraints:
+//      Lx <= x <= Rx
+//      Ly <= y <= Ry
+//
+// Returns false if no valid solution exists.
+//
+// Output:
+//      bestX, bestY
+// ------------------------------------------------------------
+bool minimum_x_plus_y(
+    ll a, ll b, ll c,
+    ll Lx, ll Rx,
+    ll Ly, ll Ry,
+    ll &bestX, ll &bestY) {
+
+    ll x0, y0, g;
+
+    // Step 1: Find one solution
+    if (!find_any_solution(a, b, c, x0, y0, g))
+        return false;
+
+
+    // --------------------------------------------------------
+    // Step 2:
+    //
+    // All solutions:
+    //
+    // x = x0 + k*(b/g)
+    // y = y0 - k*(a/g)
+    // --------------------------------------------------------
+
+    ll dx = b / g;
+    ll dy = -a / g;
+
+
+    // Initially k can be anything
+    ll kMin = LLONG_MIN / 4;
+    ll kMax = LLONG_MAX / 4;
+
+
+    // --------------------------------------------------------
+    // Step 3:
+    // Apply x constraint:
+    //
+    // Lx <= x0 + dx*k <= Rx
+    // --------------------------------------------------------
+
+    if (!add_constraint(
+            dx, x0,
+            Lx, Rx,
+            kMin, kMax))
+        return false;
+
+
+    // --------------------------------------------------------
+    // Step 4:
+    // Apply y constraint:
+    //
+    // Ly <= y0 + dy*k <= Ry
+    // --------------------------------------------------------
+
+    if (!add_constraint(
+            dy, y0,
+            Ly, Ry,
+            kMin, kMax))
+        return false;
+
+
+    // --------------------------------------------------------
+    // Step 5:
+    //
+    // x+y =
+    //
+    // x0 + y0
+    // + k*(b/g - a/g)
+    //
+    // = x0+y0 + k*(b-a)/g
+    // --------------------------------------------------------
+
+    ll change = (b - a) / g;
+
+    ll bestK;
+
+
+    if (change > 0) {
+
+        // x+y increases when k increases.
+        //
+        // Therefore minimum x+y occurs
+        // at smallest valid k.
+
+        bestK = kMin;
+
+    }
+    else if (change < 0) {
+
+        // x+y decreases when k increases.
+        //
+        // Therefore minimum x+y occurs
+        // at largest valid k.
+
+        bestK = kMax;
+
+    }
+    else {
+
+        // a == b
+        //
+        // x+y is constant for every solution.
+
+        bestK = kMin;
+    }
+
+
+    // --------------------------------------------------------
+    // Step 6: Get final x and y
+    // --------------------------------------------------------
+
+    bestX = x0 + bestK * dx;
+    bestY = y0 + bestK * dy;
+
+    return true;
+}
+
+
+// ------------------------------------------------------------
+// MAIN
+// ------------------------------------------------------------
+int main() {
+
+    ll a, b, c;
+
+    cout << "Enter a, b, c: ";
+    cin >> a >> b >> c;
+
+    ll Lx, Rx, Ly, Ry;
+
+    cout << "Enter range of x [Lx, Rx]: ";
+    cin >> Lx >> Rx;
+
+    cout << "Enter range of y [Ly, Ry]: ";
+    cin >> Ly >> Ry;
+
+
+    ll x, y;
+
+    if (!minimum_x_plus_y(
+            a, b, c,
+            Lx, Rx,
+            Ly, Ry,
+            x, y)) {
+
+        cout << "No valid integer solution exists.\n";
+        return 0;
+    }
+
+
+    cout << "\nMinimum x + y solution:\n";
+
+    cout << "x = " << x << '\n';
+    cout << "y = " << y << '\n';
+
+    cout << "x + y = " << x + y << '\n';
+
+    return 0;
+}
