@@ -1,0 +1,568 @@
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+using int64 = long long;
+
+
+// ============================================================
+// Extended Euclidean Algorithm
+//
+// Finds x, y such that:
+//
+//      a*x + b*y = gcd(a,b)
+//
+// We use |a| and |b|, so gcd is always positive.
+// ============================================================
+
+int64 extendedGCD(int64 a, int64 b,
+                  int64 &x, int64 &y) {
+
+    if (b == 0) {
+
+        x = 1;
+        y = 0;
+
+        return a;
+    }
+
+    int64 x1, y1;
+
+    int64 g = extendedGCD(b, a % b, x1, y1);
+
+    x = y1;
+
+    y = x1 - (a / b) * y1;
+
+    return g;
+}
+
+
+// ============================================================
+// Floor Division
+//
+// floor(a / b)
+//
+// C++ division truncates toward zero, so we need to
+// correct it for negative values.
+//
+// Example:
+//
+// floor( 7 / 3) =  2
+// floor(-7 / 3) = -3
+// ============================================================
+
+int64 floorDiv(int64 a, int64 b) {
+
+    int64 q = a / b;
+    int64 r = a % b;
+
+    if (r != 0 && ((r > 0) != (b > 0))) {
+        q--;
+    }
+
+    return q;
+}
+
+
+// ============================================================
+// Ceiling Division
+//
+// ceil(a / b)
+//
+// Example:
+//
+// ceil( 7 / 3) =  3
+// ceil(-7 / 3) = -2
+// ============================================================
+
+int64 ceilDiv(int64 a, int64 b) {
+
+    int64 q = a / b;
+    int64 r = a % b;
+
+    if (r != 0 && ((r > 0) == (b > 0))) {
+        q++;
+    }
+
+    return q;
+}
+
+
+// ============================================================
+// Find ANY solution
+//
+// Equation:
+//
+//      ax + by = c
+//
+// Returns:
+//
+//      true  -> solution exists
+//      false -> no solution
+//
+// Also returns:
+//
+//      x, y -> one solution
+//      g    -> gcd(|a|, |b|)
+// ============================================================
+
+bool findAnySolution(int64 a, int64 b, int64 c,
+                     int64 &x, int64 &y,
+                     int64 &g) {
+
+    // --------------------------------------------------------
+    // Special case:
+    //
+    // 0x + 0y = c
+    // --------------------------------------------------------
+
+    if (a == 0 && b == 0) {
+
+        if (c == 0) {
+
+            x = 0;
+            y = 0;
+            g = 0;
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // --------------------------------------------------------
+    // Work with positive |a| and |b|
+    // --------------------------------------------------------
+
+    int64 absA = (a < 0 ? -a : a);
+    int64 absB = (b < 0 ? -b : b);
+
+
+    int64 x0, y0;
+
+    g = extendedGCD(absA, absB, x0, y0);
+
+
+    // --------------------------------------------------------
+    // Extended GCD gives:
+    //
+    // absA*x0 + absB*y0 = g
+    //
+    // But original equation uses a and b.
+    //
+    // Correct signs.
+    // --------------------------------------------------------
+
+    if (a < 0)
+        x0 = -x0;
+
+    if (b < 0)
+        y0 = -y0;
+
+
+    // --------------------------------------------------------
+    // Solution exists only if:
+    //
+    // g divides c
+    // --------------------------------------------------------
+
+    if (c % g != 0)
+        return false;
+
+
+    // --------------------------------------------------------
+    // Scale:
+    //
+    // ax0 + by0 = g
+    //
+    // Multiply by c/g:
+    //
+    // ax + by = c
+    // --------------------------------------------------------
+
+    int64 multiplier = c / g;
+
+    x = x0 * multiplier;
+    y = y0 * multiplier;
+
+    return true;
+}
+
+
+// ============================================================
+// MAIN
+// ============================================================
+
+int main() {
+
+    // ========================================================
+    // INPUT
+    // ========================================================
+
+    int64 a, b, c;
+
+    cout << "Enter a, b, c for ax + by = c:\n";
+    cin >> a >> b >> c;
+
+
+    // --------------------------------------------------------
+    // Input rectangle
+    //
+    // minx <= x <= maxx
+    // miny <= y <= maxy
+    // --------------------------------------------------------
+
+    int64 minx, maxx;
+    int64 miny, maxy;
+
+    cout << "Enter minx and maxx:\n";
+    cin >> minx >> maxx;
+
+    cout << "Enter miny and maxy:\n";
+    cin >> miny >> maxy;
+
+
+    // ========================================================
+    // Validate interval
+    // ========================================================
+
+    if (minx > maxx || miny > maxy) {
+
+        cout << "\nInvalid interval.\n";
+
+        return 0;
+    }
+
+
+    // ========================================================
+    // SPECIAL CASE:
+    //
+    // a = 0 and b = 0
+    // ========================================================
+
+    if (a == 0 && b == 0) {
+
+        if (c != 0) {
+
+            cout << "\nNo solution.\n";
+
+        }
+        else {
+
+            cout << "\nEvery point in the rectangle is a solution.\n";
+
+            int64 width = maxx - minx + 1;
+            int64 height = maxy - miny + 1;
+
+            cout << "Number of solutions = "
+                 << width * height << '\n';
+        }
+
+        return 0;
+    }
+
+
+    // ========================================================
+    // FIND ONE SOLUTION
+    // ========================================================
+
+    int64 x0, y0, g;
+
+    if (!findAnySolution(a, b, c, x0, y0, g)) {
+
+        cout << "\nNo integer solution exists.\n";
+
+        return 0;
+    }
+
+
+    cout << "\n----------------------------------------\n";
+
+    cout << "gcd(|a|, |b|) = " << g << '\n';
+
+
+    // ========================================================
+    // ONE SOLUTION
+    // ========================================================
+
+    cout << "\nOne solution:\n";
+
+    cout << "x0 = " << x0 << '\n';
+    cout << "y0 = " << y0 << '\n';
+
+
+    // ========================================================
+    // SPECIAL CASE:
+    //
+    // a = 0
+    //
+    // by = c
+    //
+    // y is fixed.
+    // x can be anything in [minx,maxx].
+    // ========================================================
+
+    if (a == 0) {
+
+        int64 y = y0;
+
+        if (y < miny || y > maxy) {
+
+            cout << "\nNo solution inside the given rectangle.\n";
+
+            return 0;
+        }
+
+        int64 count = maxx - minx + 1;
+
+        cout << "\nAll valid y values:\n";
+        cout << "y = " << y << '\n';
+
+        cout << "\nNumber of solutions = "
+             << count << '\n';
+
+        cout << "\nSolutions:\n";
+
+        for (int64 x = minx; ; x++) {
+
+            cout << "(" << x << ", " << y << ")\n";
+
+            if (x == maxx)
+                break;
+        }
+
+        return 0;
+    }
+
+
+    // ========================================================
+    // SPECIAL CASE:
+    //
+    // b = 0
+    //
+    // ax = c
+    //
+    // x is fixed.
+    // y can be anything in [miny,maxy].
+    // ========================================================
+
+    if (b == 0) {
+
+        int64 x = x0;
+
+        if (x < minx || x > maxx) {
+
+            cout << "\nNo solution inside the given rectangle.\n";
+
+            return 0;
+        }
+
+        int64 count = maxy - miny + 1;
+
+        cout << "\nAll valid x values:\n";
+        cout << "x = " << x << '\n';
+
+        cout << "\nNumber of solutions = "
+             << count << '\n';
+
+        cout << "\nSolutions:\n";
+
+        for (int64 y = miny; ; y++) {
+
+            cout << "(" << x << ", " << y << ")\n";
+
+            if (y == maxy)
+                break;
+        }
+
+        return 0;
+    }
+
+
+    // ========================================================
+    // NORMAL CASE:
+    //
+    // a != 0
+    // b != 0
+    // ========================================================
+
+
+    // --------------------------------------------------------
+    // General solution:
+    //
+    // x = x0 + (b/g)t
+    //
+    // y = y0 - (a/g)t
+    // --------------------------------------------------------
+
+    int64 dx = b / g;
+    int64 dy = a / g;
+
+
+    cout << "\nGeneral solution:\n";
+
+    cout << "x = " << x0
+         << " + (" << dx << ")t\n";
+
+    cout << "y = " << y0
+         << " - (" << dy << ")t\n";
+
+
+    // ========================================================
+    // X RANGE
+    //
+    // minx <= x <= maxx
+    //
+    // minx <= x0 + dx*t <= maxx
+    // ========================================================
+
+    int64 txMin, txMax;
+
+
+    if (dx > 0) {
+
+        txMin = ceilDiv(minx - x0, dx);
+
+        txMax = floorDiv(maxx - x0, dx);
+
+    }
+    else {
+
+        // dx < 0
+        //
+        // Inequality direction reverses.
+
+        txMin = ceilDiv(maxx - x0, dx);
+
+        txMax = floorDiv(minx - x0, dx);
+    }
+
+
+    cout << "\nT range from X:\n";
+
+    cout << txMin << " <= t <= " << txMax << '\n';
+
+
+    // ========================================================
+    // Y RANGE
+    //
+    // miny <= y <= maxy
+    //
+    // y = y0 - dy*t
+    //
+    // Let:
+    //
+    //      dyCoefficient = -dy
+    //
+    // Then:
+    //
+    //      y = y0 + dyCoefficient*t
+    // ========================================================
+
+    int64 dyCoefficient = -dy;
+
+    int64 tyMin, tyMax;
+
+
+    if (dyCoefficient > 0) {
+
+        tyMin = ceilDiv(miny - y0, dyCoefficient);
+
+        tyMax = floorDiv(maxy - y0, dyCoefficient);
+
+    }
+    else {
+
+        // dyCoefficient < 0
+
+        tyMin = ceilDiv(maxy - y0, dyCoefficient);
+
+        tyMax = floorDiv(miny - y0, dyCoefficient);
+    }
+
+
+    cout << "\nT range from Y:\n";
+
+    cout << tyMin << " <= t <= " << tyMax << '\n';
+
+
+    // ========================================================
+    // INTERSECTION
+    // ========================================================
+
+    int64 tMin = max(txMin, tyMin);
+    int64 tMax = min(txMax, tyMax);
+
+
+    cout << "\nFinal valid T range:\n";
+
+    cout << tMin << " <= t <= " << tMax << '\n';
+
+
+    // ========================================================
+    // NO SOLUTIONS INSIDE RECTANGLE
+    // ========================================================
+
+    if (tMin > tMax) {
+
+        cout << "\nNumber of solutions = 0\n";
+
+        return 0;
+    }
+
+
+    // ========================================================
+    // COUNT
+    // ========================================================
+
+    int64 count = tMax - tMin + 1;
+
+    cout << "\nNumber of solutions = "
+         << count << '\n';
+
+
+    // ========================================================
+    // PRINT ALL SOLUTIONS
+    // ========================================================
+
+    cout << "\nAll solutions:\n";
+
+    for (int64 t = tMin; ; t++) {
+
+        int64 currentX = x0 + dx * t;
+
+        int64 currentY = y0 - dy * t;
+
+        cout << "t = " << t
+             << " -> ("
+             << currentX
+             << ", "
+             << currentY
+             << ")\n";
+
+        if (t == tMax)
+            break;
+    }
+
+
+    // ========================================================
+    // COMPLEXITY
+    // ========================================================
+
+    cout << "\n----------------------------------------\n";
+
+    cout << "Complexity:\n";
+
+    cout << "Extended GCD = O(log(min(|a|, |b|)))\n";
+
+    cout << "Finding T range = O(1)\n";
+
+    cout << "Counting = O(1)\n";
+
+    cout << "Printing = O(number of solutions)\n";
+
+
+    return 0;
+}
